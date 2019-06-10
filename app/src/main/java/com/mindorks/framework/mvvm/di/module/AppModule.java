@@ -17,9 +17,10 @@
 package com.mindorks.framework.mvvm.di.module;
 
 import android.app.Application;
-import android.arch.persistence.room.Room;
+import androidx.room.Room;
 import android.content.Context;
-
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.mindorks.framework.mvvm.BuildConfig;
 import com.mindorks.framework.mvvm.R;
 import com.mindorks.framework.mvvm.data.AppDataManager;
@@ -33,45 +34,26 @@ import com.mindorks.framework.mvvm.data.remote.ApiHeader;
 import com.mindorks.framework.mvvm.data.remote.ApiHelper;
 import com.mindorks.framework.mvvm.data.remote.AppApiHelper;
 import com.mindorks.framework.mvvm.di.ApiInfo;
-import com.mindorks.framework.mvvm.di.ApplicationContext;
 import com.mindorks.framework.mvvm.di.DatabaseInfo;
 import com.mindorks.framework.mvvm.di.PreferenceInfo;
 import com.mindorks.framework.mvvm.utils.AppConstants;
-
-import javax.inject.Singleton;
-
+import com.mindorks.framework.mvvm.utils.rx.AppSchedulerProvider;
+import com.mindorks.framework.mvvm.utils.rx.SchedulerProvider;
 import dagger.Module;
 import dagger.Provides;
+import javax.inject.Singleton;
 import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
 
 /**
- * Created by amitshekhar on 11/07/17.
+ * Created by amitshekhar on 07/07/17.
  */
-
 @Module
-public class ApplicationTestModule {
-
-    private final Application mApplication;
-
-    public ApplicationTestModule(Application application) {
-        mApplication = application;
-    }
+public class AppModule {
 
     @Provides
-    @ApplicationContext
-    Context provideContext() {
-        return mApplication;
-    }
-
-    @Provides
-    Application provideApplication() {
-        return mApplication;
-    }
-
-    @Provides
-    @DatabaseInfo
-    String provideDatabaseName() {
-        return AppConstants.DB_NAME;
+    @Singleton
+    ApiHelper provideApiHelper(AppApiHelper appApiHelper) {
+        return appApiHelper;
     }
 
     @Provides
@@ -81,9 +63,25 @@ public class ApplicationTestModule {
     }
 
     @Provides
-    @PreferenceInfo
-    String providePreferenceName() {
-        return AppConstants.PREF_NAME;
+    @Singleton
+    AppDatabase provideAppDatabase(@DatabaseInfo String dbName, Context context) {
+        return Room.databaseBuilder(context, AppDatabase.class, dbName).fallbackToDestructiveMigration()
+                .build();
+    }
+
+    @Provides
+    @Singleton
+    CalligraphyConfig provideCalligraphyDefaultConfig() {
+        return new CalligraphyConfig.Builder()
+                .setDefaultFontPath("fonts/source-sans-pro/SourceSansPro-Regular.ttf")
+                .setFontAttrId(R.attr.fontPath)
+                .build();
+    }
+
+    @Provides
+    @Singleton
+    Context provideContext(Application application) {
+        return application;
     }
 
     @Provides
@@ -93,10 +91,9 @@ public class ApplicationTestModule {
     }
 
     @Provides
-    @Singleton
-    AppDatabase provideAppDatabase(@DatabaseInfo String dbName) {
-        return Room.databaseBuilder(mApplication, AppDatabase.class, dbName)
-                .build();
+    @DatabaseInfo
+    String provideDatabaseName() {
+        return AppConstants.DB_NAME;
     }
 
     @Provides
@@ -107,14 +104,20 @@ public class ApplicationTestModule {
 
     @Provides
     @Singleton
-    PreferencesHelper providePreferencesHelper(AppPreferencesHelper appPreferencesHelper) {
-        return appPreferencesHelper;
+    Gson provideGson() {
+        return new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+    }
+
+    @Provides
+    @PreferenceInfo
+    String providePreferenceName() {
+        return AppConstants.PREF_NAME;
     }
 
     @Provides
     @Singleton
-    ApiHelper provideApiHelper(AppApiHelper appApiHelper) {
-        return appApiHelper;
+    PreferencesHelper providePreferencesHelper(AppPreferencesHelper appPreferencesHelper) {
+        return appPreferencesHelper;
     }
 
     @Provides
@@ -128,11 +131,8 @@ public class ApplicationTestModule {
     }
 
     @Provides
-    @Singleton
-    CalligraphyConfig provideCalligraphyDefaultConfig() {
-        return new CalligraphyConfig.Builder()
-                .setDefaultFontPath("fonts/source-sans-pro/SourceSansPro-Regular.ttf")
-                .setFontAttrId(R.attr.fontPath)
-                .build();
+    SchedulerProvider provideSchedulerProvider() {
+        return new AppSchedulerProvider();
     }
+
 }

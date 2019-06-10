@@ -16,25 +16,18 @@
 
 package com.mindorks.framework.mvvm.ui.login;
 
-import android.support.test.InstrumentationRegistry;
-import android.support.test.espresso.intent.rule.IntentsTestRule;
-import android.support.test.runner.AndroidJUnit4;
+import static androidx.test.espresso.Espresso.onView;
+import static androidx.test.espresso.assertion.ViewAssertions.matches;
+import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static androidx.test.espresso.matcher.ViewMatchers.withId;
+import static androidx.test.espresso.matcher.ViewMatchers.withText;
 
+import androidx.test.rule.ActivityTestRule;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import com.mindorks.framework.mvvm.R;
-import com.mindorks.framework.mvvm.TestComponentRule;
-
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
-
-import static android.support.test.espresso.Espresso.onView;
-import static android.support.test.espresso.assertion.ViewAssertions.matches;
-import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
-import static android.support.test.espresso.matcher.ViewMatchers.withId;
-import static android.support.test.espresso.matcher.ViewMatchers.withText;
 
 /**
  * Created by amitshekhar on 11/07/17.
@@ -43,23 +36,11 @@ import static android.support.test.espresso.matcher.ViewMatchers.withText;
 @RunWith(AndroidJUnit4.class)
 public class LoginActivityTest {
 
-    public final TestComponentRule component =
-            new TestComponentRule(InstrumentationRegistry.getTargetContext());
-
-    public final IntentsTestRule<LoginActivity> main =
-            new IntentsTestRule<>(LoginActivity.class, false, false);
-
     @Rule
-    public TestRule chain = RuleChain.outerRule(component).around(main);
-
-    @Before
-    public void setup() {
-
-    }
+    public ActivityTestRule<LoginActivity> mActivityRule = new ActivityTestRule<>(LoginActivity.class);
 
     @Test
     public void checkViewsDisplay() {
-        main.launchActivity(LoginActivity.getStartIntent(component.getContext()));
 
         onView(withId(R.id.etEmail))
                 .check(matches(isDisplayed()));

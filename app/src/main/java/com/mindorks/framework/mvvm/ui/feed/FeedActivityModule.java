@@ -14,18 +14,20 @@
  *  limitations under the License
  */
 
-package com.mindorks.framework.mvvm.di;
+package com.mindorks.framework.mvvm.ui.feed;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-
-import javax.inject.Scope;
+import dagger.Module;
+import dagger.Provides;
 
 /**
- * Created by amitshekhar on 11/07/17.
+ * Created by amitshekhar on 14/09/17.
  */
+@Module
+public class FeedActivityModule {
 
-@Scope
-@Retention(RetentionPolicy.RUNTIME)
-public @interface PerService {
+    @Provides
+    FeedPagerAdapter provideFeedPagerAdapter(FeedActivity activity) {
+        return new FeedPagerAdapter(activity.getSupportFragmentManager());
+    }
+
 }

@@ -17,18 +17,17 @@
 package com.mindorks.framework.mvvm.ui.base;
 
 import android.content.Context;
-import android.databinding.DataBindingUtil;
-import android.databinding.ViewDataBinding;
+import androidx.databinding.DataBindingUtil;
+import androidx.databinding.ViewDataBinding;
 import android.os.Bundle;
-import android.support.annotation.IdRes;
-import android.support.annotation.LayoutRes;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
+import androidx.annotation.LayoutRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
-import com.mindorks.framework.mvvm.di.component.ActivityComponent;
+import dagger.android.support.AndroidSupportInjection;
 
 /**
  * Created by amitshekhar on 09/07/17.
@@ -37,29 +36,30 @@ import com.mindorks.framework.mvvm.di.component.ActivityComponent;
 public abstract class BaseFragment<T extends ViewDataBinding, V extends BaseViewModel> extends Fragment {
 
     private BaseActivity mActivity;
+    private View mRootView;
     private T mViewDataBinding;
     private V mViewModel;
-    private View mRootView;
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setHasOptionsMenu(false);
-    }
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        mViewDataBinding = DataBindingUtil.inflate(inflater, getLayoutId(), container, false);
-        mRootView = mViewDataBinding.getRoot();
-        return mRootView;
-    }
-    @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        mViewModel = getViewModel();
-        mViewDataBinding.setVariable(getBindingVariable(), mViewModel);
-        mViewDataBinding.executePendingBindings();
-    }
+    /**
+     * Override for set binding variable
+     *
+     * @return variable id
+     */
+    public abstract int getBindingVariable();
+
+    /**
+     * @return layout resource id
+     */
+    public abstract
+    @LayoutRes
+    int getLayoutId();
+
+    /**
+     * Override for set view model
+     *
+     * @return view model instance
+     */
+    public abstract V getViewModel();
 
     @Override
     public void onAttach(Context context) {
@@ -72,33 +72,40 @@ public abstract class BaseFragment<T extends ViewDataBinding, V extends BaseView
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        performDependencyInjection();
+        super.onCreate(savedInstanceState);
+        mViewModel = getViewModel();
+        setHasOptionsMenu(false);
+    }
+
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        mViewDataBinding = DataBindingUtil.inflate(inflater, getLayoutId(), container, false);
+        mRootView = mViewDataBinding.getRoot();
+        return mRootView;
+    }
+
+    @Override
     public void onDetach() {
         mActivity = null;
         super.onDetach();
     }
 
-    public ActivityComponent getActivityComponent() {
-        if (mActivity != null) {
-            return mActivity.getActivityComponent();
-        }
-        return null;
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        mViewDataBinding.setVariable(getBindingVariable(), mViewModel);
+        mViewDataBinding.setLifecycleOwner(this);
+        mViewDataBinding.executePendingBindings();
     }
 
     public BaseActivity getBaseActivity() {
         return mActivity;
     }
 
-    public T getViewDataBinding(){
+    public T getViewDataBinding() {
         return mViewDataBinding;
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-    }
-
-    public boolean isNetworkConnected() {
-        return mActivity != null && mActivity.isNetworkConnected();
     }
 
     public void hideKeyboard() {
@@ -107,10 +114,18 @@ public abstract class BaseFragment<T extends ViewDataBinding, V extends BaseView
         }
     }
 
+    public boolean isNetworkConnected() {
+        return mActivity != null && mActivity.isNetworkConnected();
+    }
+
     public void openActivityOnTokenExpire() {
         if (mActivity != null) {
             mActivity.openActivityOnTokenExpire();
         }
+    }
+
+    private void performDependencyInjection() {
+        AndroidSupportInjection.inject(this);
     }
 
     public interface Callback {
@@ -119,24 +134,4 @@ public abstract class BaseFragment<T extends ViewDataBinding, V extends BaseView
 
         void onFragmentDetached(String tag);
     }
-    /**
-     * Override for set view model
-     * @return view model instance
-     */
-    public abstract V getViewModel();
-
-    /**
-     * Override for set binding variable
-     * @return variable id
-     */
-    public abstract
-    @IdRes
-    int getBindingVariable();
-
-    /**
-     * @return layout resource id
-     */
-    public abstract
-    @LayoutRes
-    int getLayoutId();
 }

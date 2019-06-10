@@ -16,55 +16,48 @@
 
 package com.mindorks.framework.mvvm.ui.base;
 
-import android.databinding.ObservableBoolean;
-
+import androidx.lifecycle.ViewModel;
+import androidx.databinding.ObservableBoolean;
 import com.mindorks.framework.mvvm.data.DataManager;
 import com.mindorks.framework.mvvm.utils.rx.SchedulerProvider;
-
 import io.reactivex.disposables.CompositeDisposable;
+import java.lang.ref.WeakReference;
 
 /**
  * Created by amitshekhar on 07/07/17.
  */
 
-public abstract class BaseViewModel<N> {
+public abstract class BaseViewModel<N> extends ViewModel {
 
-    private N mNavigator;
     private final DataManager mDataManager;
+
+    private final ObservableBoolean mIsLoading = new ObservableBoolean();
+
     private final SchedulerProvider mSchedulerProvider;
-    private final CompositeDisposable mCompositeDisposable;
-    private final ObservableBoolean mIsLoading = new ObservableBoolean(false);
+
+    private CompositeDisposable mCompositeDisposable;
+
+    private WeakReference<N> mNavigator;
 
     public BaseViewModel(DataManager dataManager,
-                         SchedulerProvider schedulerProvider,
-                         CompositeDisposable compositeDisposable) {
+                         SchedulerProvider schedulerProvider) {
         this.mDataManager = dataManager;
         this.mSchedulerProvider = schedulerProvider;
-        this.mCompositeDisposable = compositeDisposable;
+        this.mCompositeDisposable = new CompositeDisposable();
     }
 
-    public void setNavigator(N navigator) {
-        this.mNavigator = navigator;
-    }
-
-    public void onDestroy() {
+    @Override
+    protected void onCleared() {
         mCompositeDisposable.dispose();
-    }
-
-    public N getNavigator() {
-        return mNavigator;
-    }
-
-    public DataManager getDataManager() {
-        return mDataManager;
-    }
-
-    public SchedulerProvider getSchedulerProvider() {
-        return mSchedulerProvider;
+        super.onCleared();
     }
 
     public CompositeDisposable getCompositeDisposable() {
         return mCompositeDisposable;
+    }
+
+    public DataManager getDataManager() {
+        return mDataManager;
     }
 
     public ObservableBoolean getIsLoading() {
@@ -75,4 +68,15 @@ public abstract class BaseViewModel<N> {
         mIsLoading.set(isLoading);
     }
 
+    public N getNavigator() {
+        return mNavigator.get();
+    }
+
+    public void setNavigator(N navigator) {
+        this.mNavigator = new WeakReference<>(navigator);
+    }
+
+    public SchedulerProvider getSchedulerProvider() {
+        return mSchedulerProvider;
+    }
 }

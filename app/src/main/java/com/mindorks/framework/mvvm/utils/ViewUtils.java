@@ -20,8 +20,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
-import android.support.v4.content.ContextCompat;
-
+import androidx.core.content.ContextCompat;
 import com.mindorks.framework.mvvm.R;
 
 /**
@@ -34,9 +33,11 @@ public final class ViewUtils {
         // This class is not publicly instantiable
     }
 
-    public static float pxToDp(float px) {
-        float densityDpi = Resources.getSystem().getDisplayMetrics().densityDpi;
-        return px / (densityDpi / 160f);
+    public static void changeIconDrawableToGray(Context context, Drawable drawable) {
+        if (drawable != null) {
+            drawable.mutate();
+            drawable.setColorFilter(ContextCompat.getColor(context, R.color.dark_gray), PorterDuff.Mode.SRC_ATOP);
+        }
     }
 
     public static int dpToPx(float dp) {
@@ -44,12 +45,8 @@ public final class ViewUtils {
         return Math.round(dp * density);
     }
 
-    public static void changeIconDrawableToGray(Context context, Drawable drawable) {
-        if (drawable != null) {
-            drawable.mutate();
-            drawable.setColorFilter(ContextCompat
-                    .getColor(context, R.color.dark_gray), PorterDuff.Mode.SRC_ATOP);
-        }
+    public static float pxToDp(float px) {
+        float densityDpi = Resources.getSystem().getDisplayMetrics().densityDpi;
+        return px / (densityDpi / 160f);
     }
-
 }

@@ -16,66 +16,59 @@
 
 package com.mindorks.framework.mvvm.ui.feed.opensource;
 
-import android.databinding.ObservableArrayList;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import com.mindorks.framework.mvvm.data.DataManager;
 import com.mindorks.framework.mvvm.data.model.api.OpenSourceResponse;
 import com.mindorks.framework.mvvm.ui.base.BaseViewModel;
 import com.mindorks.framework.mvvm.utils.rx.SchedulerProvider;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 
+import io.reactivex.Observable;
 import io.reactivex.Single;
-import io.reactivex.annotations.NonNull;
-import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.functions.Consumer;
 
 /**
  * Created by amitshekhar on 10/07/17.
  */
 
 public class OpenSourceViewModel extends BaseViewModel<OpenSourceNavigator> {
-    public ObservableArrayList<OpenSourceItemViewModel> openSourceItemViewModels = new ObservableArrayList<>();
 
+    private final MutableLiveData<List<OpenSourceItemViewModel>> openSourceItemsLiveData;
 
     public OpenSourceViewModel(DataManager dataManager,
-                               SchedulerProvider schedulerProvider,
-                               CompositeDisposable compositeDisposable) {
-        super(dataManager, schedulerProvider, compositeDisposable);
+                               SchedulerProvider schedulerProvider) {
+        super(dataManager, schedulerProvider);
+        openSourceItemsLiveData = new MutableLiveData<>();
+        fetchRepos();
     }
 
     public void fetchRepos() {
         setIsLoading(true);
         getCompositeDisposable().add(getDataManager()
                 .getOpenSourceApiCall()
+                .map(openSourceResponse -> openSourceResponse.getData())
+                .flatMap(this::getViewModelList)
                 .subscribeOn(getSchedulerProvider().io())
                 .observeOn(getSchedulerProvider().ui())
-                .subscribe(new Consumer<OpenSourceResponse>() {
-                    @Override
-                    public void accept(@NonNull OpenSourceResponse openSourceResponse)
-                            throws Exception {
-                        if (openSourceResponse != null && openSourceResponse.getData() != null) {
-                            getNavigator().updateRepo(openSourceResponse.getData());
-                        }
-                        setIsLoading(false);
-                    }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(@NonNull Throwable throwable)
-                            throws Exception {
-                        setIsLoading(false);
-                        getNavigator().handleError(throwable);
-                    }
+                .subscribe(openSourceResponse -> {
+                    openSourceItemsLiveData.setValue(openSourceResponse);
+                    setIsLoading(false);
+                }, throwable -> {
+                    setIsLoading(false);
+                    getNavigator().handleError(throwable);
                 }));
     }
 
+    public LiveData<List<OpenSourceItemViewModel>> getOpenSourceItemsLiveData() {
+        return openSourceItemsLiveData;
+    }
 
-    public void populateViewModel(List<OpenSourceResponse.Repo> repoList){
-        for(int i = 0; i < repoList.size();i++){
-            openSourceItemViewModels.add(new OpenSourceItemViewModel(repoList.get(i).getCoverImgUrl(),repoList.get(i).getTitle(),repoList.get(i).getDescription(),repoList.get(i).getProjectUrl()));
-        }
-
+    private Single<List<OpenSourceItemViewModel>> getViewModelList(List<OpenSourceResponse.Repo> repoList) {
+        return Observable.fromIterable(repoList)
+                .map(repo -> new OpenSourceItemViewModel(
+                        repo.getCoverImgUrl(), repo.getTitle(),
+                        repo.getDescription(), repo.getProjectUrl())).toList();
     }
 }

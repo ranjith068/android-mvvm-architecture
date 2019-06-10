@@ -16,22 +16,13 @@
 
 package com.mindorks.framework.mvvm.ui.main;
 
-import com.mindorks.framework.mvvm.data.model.others.QuestionCardData;
-
-import java.util.List;
-
 /**
  * Created by amitshekhar on 09/07/17.
  */
 
 public interface MainNavigator {
 
-    void refreshQuestionnaire(List<QuestionCardData> questionList);
-
-    void reloadQuestionnaire(List<QuestionCardData> questionList);
-
-    void openLoginActivity();
-
     void handleError(Throwable throwable);
 
+    void openLoginActivity();
 }

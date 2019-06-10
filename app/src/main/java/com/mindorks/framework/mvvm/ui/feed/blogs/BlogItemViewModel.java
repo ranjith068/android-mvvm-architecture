@@ -16,8 +16,7 @@
 
 package com.mindorks.framework.mvvm.ui.feed.blogs;
 
-import android.databinding.ObservableField;
-
+import androidx.databinding.ObservableField;
 import com.mindorks.framework.mvvm.data.model.api.BlogResponse;
 
 /**
@@ -26,14 +25,19 @@ import com.mindorks.framework.mvvm.data.model.api.BlogResponse;
 
 public class BlogItemViewModel {
 
-    private BlogResponse.Blog mBlog;
-    public ObservableField<String> imageUrl;
-    public ObservableField<String> title;
-    public ObservableField<String> author;
-    public ObservableField<String> date;
-    public ObservableField<String> content;
+    public final ObservableField<String> author;
 
-    public BlogItemViewModelListener mListener;
+    public final ObservableField<String> content;
+
+    public final ObservableField<String> date;
+
+    public final ObservableField<String> imageUrl;
+
+    public final BlogItemViewModelListener mListener;
+
+    public final ObservableField<String> title;
+
+    private final BlogResponse.Blog mBlog;
 
     public BlogItemViewModel(BlogResponse.Blog blog, BlogItemViewModelListener listener) {
         this.mBlog = blog;
@@ -50,6 +54,7 @@ public class BlogItemViewModel {
     }
 
     public interface BlogItemViewModelListener {
+
         void onItemClick(String blogUrl);
     }
 }

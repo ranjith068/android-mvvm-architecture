@@ -16,18 +16,19 @@
 
 package com.mindorks.framework.mvvm.ui.main.rating;
 
-import android.databinding.DataBindingUtil;
+import androidx.lifecycle.ViewModelProviders;
+import androidx.databinding.DataBindingUtil;
 import android.os.Bundle;
-import android.support.v4.app.FragmentManager;
+import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
 import com.mindorks.framework.mvvm.R;
+import com.mindorks.framework.mvvm.ViewModelProviderFactory;
 import com.mindorks.framework.mvvm.databinding.DialogRateUsBinding;
-import com.mindorks.framework.mvvm.di.component.ActivityComponent;
 import com.mindorks.framework.mvvm.ui.base.BaseDialog;
-
+import dagger.android.support.AndroidSupportInjection;
 import javax.inject.Inject;
 
 /**
@@ -36,10 +37,10 @@ import javax.inject.Inject;
 
 public class RateUsDialog extends BaseDialog implements RateUsCallback {
 
-    private static final String TAG = "RateUsDialog";
-
+    private static final String TAG = RateUsDialog.class.getSimpleName();
     @Inject
-    RateUsViewModel mRateUsViewModel;
+    ViewModelProviderFactory factory;
+    private RateUsViewModel mRateUsViewModel;
 
     public static RateUsDialog newInstance() {
         RateUsDialog fragment = new RateUsDialog();
@@ -49,18 +50,17 @@ public class RateUsDialog extends BaseDialog implements RateUsCallback {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public void dismissDialog() {
+        dismissDialog(TAG);
+    }
 
-        DialogRateUsBinding binding = DataBindingUtil.inflate(
-                inflater, R.layout.dialog_rate_us, container, false);
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        DialogRateUsBinding binding = DataBindingUtil.inflate(inflater, R.layout.dialog_rate_us, container, false);
         View view = binding.getRoot();
 
-        ActivityComponent component = getActivityComponent();
-        if (component != null) {
-            component.inject(this);
-        }
-
+        AndroidSupportInjection.inject(this);
+        mRateUsViewModel = ViewModelProviders.of(this,factory).get(RateUsViewModel.class);
         binding.setViewModel(mRateUsViewModel);
 
         mRateUsViewModel.setNavigator(this);
@@ -68,19 +68,7 @@ public class RateUsDialog extends BaseDialog implements RateUsCallback {
         return view;
     }
 
-
     public void show(FragmentManager fragmentManager) {
         super.show(fragmentManager, TAG);
-    }
-
-    @Override
-    public void onDestroyView() {
-        mRateUsViewModel.onDestroy();
-        super.onDestroyView();
-    }
-
-    @Override
-    public void dismissDialog() {
-        dismissDialog(TAG);
     }
 }

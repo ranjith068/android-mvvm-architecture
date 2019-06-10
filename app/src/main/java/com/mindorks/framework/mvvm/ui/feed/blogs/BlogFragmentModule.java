@@ -14,22 +14,26 @@
  *  limitations under the License
  */
 
-package com.mindorks.framework.mvvm.di.module;
+package com.mindorks.framework.mvvm.ui.feed.blogs;
 
-import android.app.Service;
-
+import androidx.recyclerview.widget.LinearLayoutManager;
 import dagger.Module;
+import dagger.Provides;
+import java.util.ArrayList;
 
 /**
- * Created by amitshekhar on 11/07/17.
+ * Created by amitshekhar on 14/09/17.
  */
-
 @Module
-public class ServiceModule {
+public class BlogFragmentModule {
 
-    private final Service mService;
+    @Provides
+    BlogAdapter provideBlogAdapter() {
+        return new BlogAdapter(new ArrayList<>());
+    }
 
-    public ServiceModule(Service service) {
-        mService = service;
+    @Provides
+    LinearLayoutManager provideLinearLayoutManager(BlogFragment fragment) {
+        return new LinearLayoutManager(fragment.getActivity());
     }
 }

@@ -14,19 +14,17 @@
  *  limitations under the License
  */
 
-package com.mindorks.framework.mvvm.di.component;
+package com.mindorks.framework.mvvm.ui.feed.opensource;
 
-import com.mindorks.framework.mvvm.di.module.ApplicationTestModule;
-
-import javax.inject.Singleton;
-
-import dagger.Component;
+import dagger.Module;
+import dagger.android.ContributesAndroidInjector;
 
 /**
- * Created by amitshekhar on 11/07/17.
+ * Created by amitshekhar on 14/09/17.
  */
+@Module
+public abstract class OpenSourceFragmentProvider {
 
-@Singleton
-@Component(modules = ApplicationTestModule.class)
-public interface TestComponent extends ApplicationComponent {
+    @ContributesAndroidInjector(modules = OpenSourceFragmentModule.class)
+    abstract OpenSourceFragment provideOpenSourceFragmentFactory();
 }

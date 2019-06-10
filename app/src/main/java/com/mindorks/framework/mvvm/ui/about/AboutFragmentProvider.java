@@ -14,17 +14,17 @@
  *  limitations under the License
  */
 
-package com.mindorks.framework.mvvm.di;
+package com.mindorks.framework.mvvm.ui.about;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-
-import javax.inject.Scope;
+import dagger.Module;
+import dagger.android.ContributesAndroidInjector;
 
 /**
- * Created by amitshekhar on 07/07/17.
+ * Created by amitshekhar on 14/09/17.
  */
-@Scope
-@Retention(RetentionPolicy.RUNTIME)
-public @interface PerActivity {
+@Module
+public abstract class AboutFragmentProvider {
+
+    @ContributesAndroidInjector
+    abstract AboutFragment provideAboutFragmentFactory();
 }

@@ -27,7 +27,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.support.v7.widget.AppCompatImageView;
+import androidx.appcompat.widget.AppCompatImageView;
 import android.util.AttributeSet;
 import android.util.Log;
 
@@ -37,7 +37,7 @@ import android.util.Log;
 
 public class RoundedImageView extends AppCompatImageView {
 
-    private static final String TAG = "RoundedImageView";
+    private static final String TAG = RoundedImageView.class.getSimpleName();
 
     public RoundedImageView(Context context) {
         super(context);
@@ -122,6 +122,4 @@ public class RoundedImageView extends AppCompatImageView {
 
         return output;
     }
-
 }
-

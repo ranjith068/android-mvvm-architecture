@@ -16,15 +16,14 @@
 
 package com.mindorks.framework.mvvm.ui.about;
 
-
+import androidx.lifecycle.ViewModelProviders;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import com.mindorks.framework.mvvm.BR;
 import com.mindorks.framework.mvvm.R;
+import com.mindorks.framework.mvvm.ViewModelProviderFactory;
 import com.mindorks.framework.mvvm.databinding.FragmentAboutBinding;
-import com.mindorks.framework.mvvm.di.component.ActivityComponent;
 import com.mindorks.framework.mvvm.ui.base.BaseFragment;
-
 import javax.inject.Inject;
 
 /**
@@ -33,28 +32,16 @@ import javax.inject.Inject;
 
 public class AboutFragment extends BaseFragment<FragmentAboutBinding, AboutViewModel> implements AboutNavigator {
 
-    public static final String TAG = "AboutFragment";
-
+    public static final String TAG = AboutFragment.class.getSimpleName();
     @Inject
-    AboutViewModel mAboutViewModel;
+    ViewModelProviderFactory factory;
+    private AboutViewModel mAboutViewModel;
 
     public static AboutFragment newInstance() {
         Bundle args = new Bundle();
         AboutFragment fragment = new AboutFragment();
         fragment.setArguments(args);
         return fragment;
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        performDependencyInjection();
-        mAboutViewModel.setNavigator(this);
-    }
-
-    @Override
-    public AboutViewModel getViewModel() {
-        return mAboutViewModel;
     }
 
     @Override
@@ -68,20 +55,19 @@ public class AboutFragment extends BaseFragment<FragmentAboutBinding, AboutViewM
     }
 
     @Override
+    public AboutViewModel getViewModel() {
+        mAboutViewModel = ViewModelProviders.of(this,factory).get(AboutViewModel.class);
+        return mAboutViewModel;
+    }
+
+    @Override
     public void goBack() {
         getBaseActivity().onFragmentDetached(TAG);
     }
 
     @Override
-    public void onDestroyView() {
-        mAboutViewModel.onDestroy();
-        super.onDestroyView();
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mAboutViewModel.setNavigator(this);
     }
-    private void performDependencyInjection(){
-        ActivityComponent component = getActivityComponent();
-        if (getActivityComponent() != null) {
-            component.inject(this);
-        }
-    }
-
 }

@@ -19,7 +19,6 @@ package com.mindorks.framework.mvvm.ui.main;
 import android.graphics.Color;
 import android.widget.Button;
 import android.widget.TextView;
-
 import com.androidnetworking.widget.ANImageView;
 import com.mindorks.framework.mvvm.R;
 import com.mindorks.framework.mvvm.data.model.db.Option;
@@ -38,11 +37,6 @@ import com.mindorks.placeholderview.annotations.View;
 @Layout(R.layout.card_layout)
 public class QuestionCard {
 
-    private static final String TAG = "QuestionCard";
-
-    @View(R.id.tv_question_txt)
-    private TextView mQuestionTextView;
-
     @View(R.id.btn_option_1)
     private Button mOption1Button;
 
@@ -57,14 +51,34 @@ public class QuestionCard {
 
     private QuestionCardData mQuestionCardData;
 
+    @View(R.id.tv_question_txt)
+    private TextView mQuestionTextView;
+
     public QuestionCard(QuestionCardData questionCardData) {
         mQuestionCardData = questionCardData;
     }
 
+    @Click(R.id.btn_option_1)
+    public void onOption1Click() {
+        showCorrectOptions();
+    }
+
+    @Click(R.id.btn_option_2)
+    public void onOption2Click() {
+        showCorrectOptions();
+    }
+
+    @Click(R.id.btn_option_3)
+    public void onOption3Click() {
+        showCorrectOptions();
+    }
+
     @Resolve
     private void onResolved() {
-
         mQuestionTextView.setText(mQuestionCardData.question.questionText);
+        if (mQuestionCardData.mShowCorrectOptions) {
+            showCorrectOptions();
+        }
 
         for (int i = 0; i < 3; i++) {
             Button button = null;
@@ -80,8 +94,9 @@ public class QuestionCard {
                     break;
             }
 
-            if (button != null)
+            if (button != null) {
                 button.setText(mQuestionCardData.options.get(i).optionText);
+            }
 
             if (mQuestionCardData.question.imgUrl != null) {
                 mPicImageView.setImageUrl(mQuestionCardData.question.imgUrl);
@@ -90,6 +105,7 @@ public class QuestionCard {
     }
 
     private void showCorrectOptions() {
+        mQuestionCardData.mShowCorrectOptions = true;
         for (int i = 0; i < 3; i++) {
             Option option = mQuestionCardData.options.get(i);
             Button button = null;
@@ -112,20 +128,5 @@ public class QuestionCard {
                 }
             }
         }
-    }
-
-    @Click(R.id.btn_option_1)
-    public void onOption1Click() {
-        showCorrectOptions();
-    }
-
-    @Click(R.id.btn_option_2)
-    public void onOption2Click() {
-        showCorrectOptions();
-    }
-
-    @Click(R.id.btn_option_3)
-    public void onOption3Click() {
-        showCorrectOptions();
     }
 }

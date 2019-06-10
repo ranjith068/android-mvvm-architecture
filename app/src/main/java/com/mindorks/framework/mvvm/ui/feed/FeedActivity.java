@@ -16,82 +16,58 @@
 
 package com.mindorks.framework.mvvm.ui.feed;
 
+import androidx.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.NavUtils;
-import android.support.v4.app.TaskStackBuilder;
+import com.google.android.material.tabs.TabLayout;
+import androidx.fragment.app.Fragment;
+import androidx.core.app.NavUtils;
+import androidx.core.app.TaskStackBuilder;
 import android.view.MenuItem;
 import com.mindorks.framework.mvvm.BR;
 import com.mindorks.framework.mvvm.R;
+import com.mindorks.framework.mvvm.ViewModelProviderFactory;
 import com.mindorks.framework.mvvm.databinding.ActivityFeedBinding;
 import com.mindorks.framework.mvvm.ui.base.BaseActivity;
-
+import dagger.android.AndroidInjector;
+import dagger.android.DispatchingAndroidInjector;
+import dagger.android.support.HasSupportFragmentInjector;
 import javax.inject.Inject;
 
 /**
  * Created by amitshekhar on 10/07/17.
  */
 
-public class FeedActivity extends BaseActivity<ActivityFeedBinding, FeedViewModel> {
+public class FeedActivity extends BaseActivity<ActivityFeedBinding, FeedViewModel> implements HasSupportFragmentInjector {
 
+    @Inject
+    DispatchingAndroidInjector<Fragment> fragmentDispatchingAndroidInjector;
     @Inject
     FeedPagerAdapter mPagerAdapter;
     @Inject
-    FeedViewModel mFeedViewModel;
-    ActivityFeedBinding mActivityFeedBinding;
+    ViewModelProviderFactory factory;
+    private ActivityFeedBinding mActivityFeedBinding;
+    private FeedViewModel mFeedViewModel;
 
-
-
-    public static Intent getStartIntent(Context context) {
-        Intent intent = new Intent(context, FeedActivity.class);
-        return intent;
+    public static Intent newIntent(Context context) {
+        return new Intent(context, FeedActivity.class);
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        mActivityFeedBinding = getViewDataBinding();
-        setUp();
+    public int getBindingVariable() {
+        return BR.viewModel;
     }
 
-    private void setUp() {
+    @Override
+    public int getLayoutId() {
+        return R.layout.activity_feed;
+    }
 
-        setSupportActionBar(mActivityFeedBinding.toolbar);
-
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setDisplayShowHomeEnabled(true);
-        }
-
-        mPagerAdapter.setCount(2);
-
-        mActivityFeedBinding.feedViewPager.setAdapter(mPagerAdapter);
-
-        mActivityFeedBinding.tabLayout.addTab(mActivityFeedBinding.tabLayout.newTab().setText(getString(R.string.blog)));
-        mActivityFeedBinding.tabLayout.addTab(mActivityFeedBinding.tabLayout.newTab().setText(getString(R.string.open_source)));
-
-        mActivityFeedBinding.feedViewPager.setOffscreenPageLimit(mActivityFeedBinding.tabLayout.getTabCount());
-
-        mActivityFeedBinding.feedViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(mActivityFeedBinding.tabLayout));
-
-        mActivityFeedBinding.tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                mActivityFeedBinding.feedViewPager.setCurrentItem(tab.getPosition());
-            }
-
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {
-
-            }
-
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {
-
-            }
-        });
+    @Override
+    public FeedViewModel getViewModel() {
+        mFeedViewModel = ViewModelProviders.of(this,factory).get(FeedViewModel.class);
+        return mFeedViewModel;
     }
 
     @Override
@@ -120,30 +96,50 @@ public class FeedActivity extends BaseActivity<ActivityFeedBinding, FeedViewMode
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    public AndroidInjector<Fragment> supportFragmentInjector() {
+        return fragmentDispatchingAndroidInjector;
     }
 
     @Override
-    public FeedViewModel getViewModel() {
-        return mFeedViewModel;
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mActivityFeedBinding = getViewDataBinding();
+        setUp();
     }
 
-    @Override
-    public int getBindingVariable() {
-        return BR.viewModel;
+    private void setUp() {
+        setSupportActionBar(mActivityFeedBinding.toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
+
+        mPagerAdapter.setCount(2);
+
+        mActivityFeedBinding.feedViewPager.setAdapter(mPagerAdapter);
+
+        mActivityFeedBinding.tabLayout.addTab(mActivityFeedBinding.tabLayout.newTab().setText(getString(R.string.blog)));
+        mActivityFeedBinding.tabLayout.addTab(mActivityFeedBinding.tabLayout.newTab().setText(getString(R.string.open_source)));
+
+        mActivityFeedBinding.feedViewPager.setOffscreenPageLimit(mActivityFeedBinding.tabLayout.getTabCount());
+
+        mActivityFeedBinding.feedViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(mActivityFeedBinding.tabLayout));
+
+        mActivityFeedBinding.tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                mActivityFeedBinding.feedViewPager.setCurrentItem(tab.getPosition());
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+        });
     }
-
-    @Override
-    public int getLayoutId() {
-        return R.layout.activity_feed;
-    }
-
-    @Override
-    public void performDependencyInjection() {
-        getActivityComponent().inject(this);
-
-    }
-
-
 }

@@ -14,17 +14,26 @@
  *  limitations under the License
  */
 
-package com.mindorks.framework.mvvm.di;
+package com.mindorks.framework.mvvm.ui.feed.opensource;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-
-import javax.inject.Qualifier;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import dagger.Module;
+import dagger.Provides;
 
 /**
- * Created by amitshekhar on 07/07/17.
+ * Created by amitshekhar on 14/09/17.
  */
-@Qualifier
-@Retention(RetentionPolicy.RUNTIME)
-public @interface ActivityContext {
+@Module
+public class OpenSourceFragmentModule {
+
+    @Provides
+    LinearLayoutManager provideLinearLayoutManager(OpenSourceFragment fragment) {
+        return new LinearLayoutManager(fragment.getActivity());
+    }
+
+    @Provides
+    OpenSourceAdapter provideOpenSourceAdapter() {
+        return new OpenSourceAdapter();
+    }
+
 }

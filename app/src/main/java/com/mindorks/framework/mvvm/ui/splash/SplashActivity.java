@@ -16,16 +16,17 @@
 
 package com.mindorks.framework.mvvm.ui.splash;
 
-import android.content.Context;
+import androidx.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
+
 import com.mindorks.framework.mvvm.BR;
 import com.mindorks.framework.mvvm.R;
+import com.mindorks.framework.mvvm.ViewModelProviderFactory;
 import com.mindorks.framework.mvvm.databinding.ActivitySplashBinding;
 import com.mindorks.framework.mvvm.ui.base.BaseActivity;
 import com.mindorks.framework.mvvm.ui.login.LoginActivity;
 import com.mindorks.framework.mvvm.ui.main.MainActivity;
-
 import javax.inject.Inject;
 
 /**
@@ -35,44 +36,8 @@ import javax.inject.Inject;
 public class SplashActivity extends BaseActivity<ActivitySplashBinding, SplashViewModel> implements SplashNavigator {
 
     @Inject
-    SplashViewModel mSplashViewModel;
-
-
-    public static Intent getStartIntent(Context context) {
-        Intent intent = new Intent(context, SplashActivity.class);
-        return intent;
-    }
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        mSplashViewModel.setNavigator(this);
-        mSplashViewModel.startSeeding();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mSplashViewModel.onDestroy();
-    }
-
-    @Override
-    public void openLoginActivity() {
-        Intent intent = LoginActivity.getStartIntent(SplashActivity.this);
-        startActivity(intent);
-        finish();
-    }
-
-    @Override
-    public void openMainActivity() {
-        Intent intent = MainActivity.getStartIntent(SplashActivity.this);
-        startActivity(intent);
-        finish();
-    }
-    @Override
-    public SplashViewModel getViewModel() {
-        return mSplashViewModel;
-    }
+    ViewModelProviderFactory factory;
+    private SplashViewModel mSplashViewModel;
 
     @Override
     public int getBindingVariable() {
@@ -85,10 +50,29 @@ public class SplashActivity extends BaseActivity<ActivitySplashBinding, SplashVi
     }
 
     @Override
-    public void performDependencyInjection() {
-        getActivityComponent().inject(this);
-
+    public SplashViewModel getViewModel() {
+        mSplashViewModel = ViewModelProviders.of(this,factory).get(SplashViewModel.class);
+        return mSplashViewModel;
     }
 
+    @Override
+    public void openLoginActivity() {
+        Intent intent = LoginActivity.newIntent(SplashActivity.this);
+        startActivity(intent);
+        finish();
+    }
 
+    @Override
+    public void openMainActivity() {
+        Intent intent = MainActivity.newIntent(SplashActivity.this);
+        startActivity(intent);
+        finish();
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mSplashViewModel.setNavigator(this);
+        mSplashViewModel.startSeeding();
+    }
 }

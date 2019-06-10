@@ -14,17 +14,17 @@
  *  limitations under the License
  */
 
-package com.mindorks.framework.mvvm.di;
+package com.mindorks.framework.mvvm.ui.feed.blogs;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-
-import javax.inject.Qualifier;
+import dagger.Module;
+import dagger.android.ContributesAndroidInjector;
 
 /**
- * Created by amitshekhar on 07/07/17.
+ * Created by amitshekhar on 14/09/17.
  */
-@Qualifier
-@Retention(RetentionPolicy.RUNTIME)
-public @interface ApplicationContext {
+@Module
+public abstract class BlogFragmentProvider {
+
+    @ContributesAndroidInjector(modules = BlogFragmentModule.class)
+    abstract BlogFragment provideBlogFragmentFactory();
 }

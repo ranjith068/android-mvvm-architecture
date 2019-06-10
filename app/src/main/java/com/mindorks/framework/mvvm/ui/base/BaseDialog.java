@@ -21,18 +21,14 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.view.View;
+import androidx.annotation.NonNull;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.RelativeLayout;
-
-import com.mindorks.framework.mvvm.di.component.ActivityComponent;
 
 /**
  * Created by amitshekhar on 10/07/17.
@@ -50,23 +46,6 @@ public abstract class BaseDialog extends DialogFragment {
             this.mActivity = mActivity;
             mActivity.onFragmentAttached();
         }
-    }
-
-    @Override
-    public void onDetach() {
-        mActivity = null;
-        super.onDetach();
-    }
-
-    public BaseActivity getBaseActivity() {
-        return mActivity;
-    }
-
-    public ActivityComponent getActivityComponent() {
-        if (mActivity != null) {
-            return mActivity.getActivityComponent();
-        }
-        return null;
     }
 
     @NonNull
@@ -94,41 +73,9 @@ public abstract class BaseDialog extends DialogFragment {
     }
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-    }
-
-    public void showLoading() {
-        if (mActivity != null) {
-            mActivity.showLoading();
-        }
-    }
-
-    public void hideLoading() {
-        if (mActivity != null) {
-            mActivity.hideLoading();
-        }
-    }
-
-    public boolean isNetworkConnected() {
-        return mActivity != null && mActivity.isNetworkConnected();
-    }
-
-    public void hideKeyboard() {
-        if (mActivity != null) {
-            mActivity.hideKeyboard();
-        }
-    }
-
-    public void openActivityOnTokenExpire() {
-        if (mActivity != null) {
-            mActivity.openActivityOnTokenExpire();
-        }
+    public void onDetach() {
+        mActivity = null;
+        super.onDetach();
     }
 
     public void show(FragmentManager fragmentManager, String tag) {
@@ -144,5 +91,37 @@ public abstract class BaseDialog extends DialogFragment {
     public void dismissDialog(String tag) {
         dismiss();
         getBaseActivity().onFragmentDetached(tag);
+    }
+
+    public BaseActivity getBaseActivity() {
+        return mActivity;
+    }
+
+    public void hideKeyboard() {
+        if (mActivity != null) {
+            mActivity.hideKeyboard();
+        }
+    }
+
+    public void hideLoading() {
+        if (mActivity != null) {
+            mActivity.hideLoading();
+        }
+    }
+
+    public boolean isNetworkConnected() {
+        return mActivity != null && mActivity.isNetworkConnected();
+    }
+
+    public void openActivityOnTokenExpire() {
+        if (mActivity != null) {
+            mActivity.openActivityOnTokenExpire();
+        }
+    }
+
+    public void showLoading() {
+        if (mActivity != null) {
+            mActivity.showLoading();
+        }
     }
 }

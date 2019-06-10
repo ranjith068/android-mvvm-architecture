@@ -20,11 +20,8 @@ import com.mindorks.framework.mvvm.data.local.db.DbHelper;
 import com.mindorks.framework.mvvm.data.local.prefs.PreferencesHelper;
 import com.mindorks.framework.mvvm.data.model.others.QuestionCardData;
 import com.mindorks.framework.mvvm.data.remote.ApiHelper;
-
-import java.util.List;
-
 import io.reactivex.Observable;
-import io.reactivex.Single;
+import java.util.List;
 
 /**
  * Created by amitshekhar on 07/07/17.
@@ -32,15 +29,15 @@ import io.reactivex.Single;
 
 public interface DataManager extends DbHelper, PreferencesHelper, ApiHelper {
 
-    void updateApiHeader(Long userId, String accessToken);
-
-    void setUserAsLoggedOut();
-
-    Observable<Boolean> seedDatabaseQuestions();
+    Observable<List<QuestionCardData>> getQuestionCardData();
 
     Observable<Boolean> seedDatabaseOptions();
 
-    Observable<List<QuestionCardData>> getQuestionCardData();
+    Observable<Boolean> seedDatabaseQuestions();
+
+    void setUserAsLoggedOut();
+
+    void updateApiHeader(Long userId, String accessToken);
 
     void updateUserInfo(
             String accessToken,

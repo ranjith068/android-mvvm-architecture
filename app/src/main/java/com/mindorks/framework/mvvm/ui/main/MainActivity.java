@@ -16,31 +16,28 @@
 
 package com.mindorks.framework.mvvm.ui.main;
 
+import androidx.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
-import android.databinding.DataBindingUtil;
+import androidx.databinding.DataBindingUtil;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.NonNull;
-import android.support.design.widget.NavigationView;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.widget.Toolbar;
+import com.google.android.material.navigation.NavigationView;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.ScaleAnimation;
-
 import com.mindorks.framework.mvvm.BR;
 import com.mindorks.framework.mvvm.BuildConfig;
 import com.mindorks.framework.mvvm.R;
-import com.mindorks.framework.mvvm.data.model.others.QuestionCardData;
+import com.mindorks.framework.mvvm.ViewModelProviderFactory;
 import com.mindorks.framework.mvvm.databinding.ActivityMainBinding;
 import com.mindorks.framework.mvvm.databinding.NavHeaderMainBinding;
 import com.mindorks.framework.mvvm.ui.about.AboutFragment;
@@ -51,39 +48,48 @@ import com.mindorks.framework.mvvm.ui.main.rating.RateUsDialog;
 import com.mindorks.framework.mvvm.utils.ScreenUtils;
 import com.mindorks.placeholderview.SwipeDecor;
 import com.mindorks.placeholderview.SwipePlaceHolderView;
-import com.mindorks.placeholderview.listeners.ItemRemovedListener;
-
-import java.util.List;
-
+import dagger.android.AndroidInjector;
+import dagger.android.DispatchingAndroidInjector;
+import dagger.android.support.HasSupportFragmentInjector;
 import javax.inject.Inject;
 
-public class MainActivity extends BaseActivity<ActivityMainBinding,MainViewModel> implements MainNavigator {
+public class MainActivity extends BaseActivity<ActivityMainBinding, MainViewModel> implements MainNavigator, HasSupportFragmentInjector {
 
     @Inject
-    MainViewModel mMainViewModel;
-
-
+    DispatchingAndroidInjector<Fragment> fragmentDispatchingAndroidInjector;
+    @Inject
+    ViewModelProviderFactory factory;
+    private ActivityMainBinding mActivityMainBinding;
+    private SwipePlaceHolderView mCardsContainerView;
     private DrawerLayout mDrawer;
-
+    private MainViewModel mMainViewModel;
+    private NavigationView mNavigationView;
     private Toolbar mToolbar;
 
-    private NavigationView mNavigationView;
-
-    private SwipePlaceHolderView mCardsContainerView;
-    ActivityMainBinding mActivityMainBinding;
-
-
-    public static Intent getStartIntent(Context context) {
+    public static Intent newIntent(Context context) {
         Intent intent = new Intent(context, MainActivity.class);
         return intent;
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        mActivityMainBinding = getViewDataBinding();
-        mMainViewModel.setNavigator(this);
-        setUp();
+    public int getBindingVariable() {
+        return BR.viewModel;
+    }
+
+    @Override
+    public int getLayoutId() {
+        return R.layout.activity_main;
+    }
+
+    @Override
+    public MainViewModel getViewModel() {
+        mMainViewModel = ViewModelProviders.of(this, factory).get(MainViewModel.class);
+        return mMainViewModel;
+    }
+
+    @Override
+    public void handleError(Throwable throwable) {
+        // handle error
     }
 
     @Override
@@ -98,23 +104,24 @@ public class MainActivity extends BaseActivity<ActivityMainBinding,MainViewModel
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mMainViewModel.onDestroy();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (mDrawer != null)
-            mDrawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
-    }
-
-    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
+    }
+
+    public void onFragmentDetached(String tag) {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        Fragment fragment = fragmentManager.findFragmentByTag(tag);
+        if (fragment != null) {
+            fragmentManager
+                    .beginTransaction()
+                    .disallowAddToBackStack()
+                    .setCustomAnimations(R.anim.slide_left, R.anim.slide_right)
+                    .remove(fragment)
+                    .commitNow();
+            unlockDrawer();
+        }
     }
 
     @Override
@@ -137,8 +144,40 @@ public class MainActivity extends BaseActivity<ActivityMainBinding,MainViewModel
         }
     }
 
-    private void setUp() {
+    @Override
+    public void openLoginActivity() {
+        startActivity(LoginActivity.newIntent(this));
+        finish();
+    }
 
+    @Override
+    public AndroidInjector<Fragment> supportFragmentInjector() {
+        return fragmentDispatchingAndroidInjector;
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mActivityMainBinding = getViewDataBinding();
+        mMainViewModel.setNavigator(this);
+        setUp();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mDrawer != null) {
+            mDrawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+        }
+    }
+
+    private void lockDrawer() {
+        if (mDrawer != null) {
+            mDrawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+        }
+    }
+
+    private void setUp() {
         mDrawer = mActivityMainBinding.drawerView;
         mToolbar = mActivityMainBinding.toolbar;
         mNavigationView = mActivityMainBinding.navigationView;
@@ -152,14 +191,14 @@ public class MainActivity extends BaseActivity<ActivityMainBinding,MainViewModel
                 R.string.open_drawer,
                 R.string.close_drawer) {
             @Override
-            public void onDrawerOpened(View drawerView) {
-                super.onDrawerOpened(drawerView);
-                hideKeyboard();
+            public void onDrawerClosed(View drawerView) {
+                super.onDrawerClosed(drawerView);
             }
 
             @Override
-            public void onDrawerClosed(View drawerView) {
-                super.onDrawerClosed(drawerView);
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                hideKeyboard();
             }
         };
         mDrawer.addDrawerListener(mDrawerToggle);
@@ -169,11 +208,10 @@ public class MainActivity extends BaseActivity<ActivityMainBinding,MainViewModel
         mMainViewModel.updateAppVersion(version);
         mMainViewModel.onNavMenuCreated();
         setupCardContainerView();
-        mMainViewModel.onViewInitialized();
+        subscribeToLiveData();
     }
 
     private void setupCardContainerView() {
-
         int screenWidth = ScreenUtils.getScreenWidth(this);
         int screenHeight = ScreenUtils.getScreenHeight(this);
 
@@ -188,18 +226,15 @@ public class MainActivity extends BaseActivity<ActivityMainBinding,MainViewModel
                         .setSwipeRotationAngle(10)
                         .setRelativeScale(0.01f));
 
-        mCardsContainerView.addItemRemoveListener(new ItemRemovedListener() {
-            @Override
-            public void onItemRemoved(int count) {
-                if (count == 0) {
-                    // reload the contents again after 1 sec delay
-                    new Handler(getMainLooper()).postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            mMainViewModel.onCardExhausted();
-                        }
-                    }, 800);
-                }
+        mCardsContainerView.addItemRemoveListener(count -> {
+            if (count == 0) {
+                // reload the contents again after 1 sec delay
+                new Handler(getMainLooper()).postDelayed(() -> {
+                    //Reload once all the cards are removed
+                    mMainViewModel.loadQuestionCards();
+                }, 800);
+            } else {
+                mMainViewModel.removeQuestionCard();
             }
         });
     }
@@ -211,80 +246,28 @@ public class MainActivity extends BaseActivity<ActivityMainBinding,MainViewModel
         navHeaderMainBinding.setViewModel(mMainViewModel);
 
         mNavigationView.setNavigationItemSelectedListener(
-                new NavigationView.OnNavigationItemSelectedListener() {
-                    @Override
-                    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                        mDrawer.closeDrawer(GravityCompat.START);
-                        switch (item.getItemId()) {
-                            case R.id.navItemAbout:
-                                showAboutFragment();
-                                return true;
-                            case R.id.navItemRateUs:
-                                RateUsDialog.newInstance().show(getSupportFragmentManager());
-                                return true;
-                            case R.id.navItemFeed:
-                                startActivity(FeedActivity.getStartIntent(MainActivity.this));
-                                return true;
-                            case R.id.navItemLogout:
-                                mMainViewModel.logout();
-                                return true;
-                            default:
-                                return false;
-                        }
+                item -> {
+                    mDrawer.closeDrawer(GravityCompat.START);
+                    switch (item.getItemId()) {
+                        case R.id.navItemAbout:
+                            showAboutFragment();
+                            return true;
+                        case R.id.navItemRateUs:
+                            RateUsDialog.newInstance().show(getSupportFragmentManager());
+                            return true;
+                        case R.id.navItemFeed:
+                            startActivity(FeedActivity.newIntent(MainActivity.this));
+                            return true;
+                        case R.id.navItemLogout:
+                            mMainViewModel.logout();
+                            return true;
+                        default:
+                            return false;
                     }
                 });
     }
 
-    @Override
-    public void refreshQuestionnaire(List<QuestionCardData> questionList) {
-        for (QuestionCardData question : questionList) {
-            if (question != null
-                    && question.options != null
-                    && question.options.size() == 3) {
-                mCardsContainerView.addView(new QuestionCard(question));
-            }
-        }
-    }
-
-    @Override
-    public void reloadQuestionnaire(List<QuestionCardData> questionList) {
-        refreshQuestionnaire(questionList);
-        ScaleAnimation animation =
-                new ScaleAnimation(
-                        1.15f, 1, 1.15f, 1,
-                        Animation.RELATIVE_TO_SELF, 0.5f,
-                        Animation.RELATIVE_TO_SELF, 0.5f);
-
-        mCardsContainerView.setAnimation(animation);
-        animation.setDuration(100);
-        animation.start();
-    }
-
-    public void onFragmentDetached(String tag) {
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        Fragment fragment = fragmentManager.findFragmentByTag(tag);
-        if (fragment != null) {
-            fragmentManager
-                    .beginTransaction()
-                    .disallowAddToBackStack()
-                    .setCustomAnimations(R.anim.slide_left, R.anim.slide_right)
-                    .remove(fragment)
-                    .commitNow();
-            unlockDrawer();
-        }
-    }
-
-    public void lockDrawer() {
-        if (mDrawer != null)
-            mDrawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-    }
-
-    public void unlockDrawer() {
-        if (mDrawer != null)
-            mDrawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
-    }
-
-    public void showAboutFragment() {
+    private void showAboutFragment() {
         lockDrawer();
         getSupportFragmentManager()
                 .beginTransaction()
@@ -294,36 +277,13 @@ public class MainActivity extends BaseActivity<ActivityMainBinding,MainViewModel
                 .commit();
     }
 
-    @Override
-    public void openLoginActivity() {
-        startActivity(LoginActivity.getStartIntent(this));
-        finish();
+    private void subscribeToLiveData() {
+        mMainViewModel.getQuestionCardData().observe(this, questionCardDatas -> mMainViewModel.setQuestionDataList(questionCardDatas));
     }
 
-    @Override
-    public void handleError(Throwable throwable) {
-        // handle error
+    private void unlockDrawer() {
+        if (mDrawer != null) {
+            mDrawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+        }
     }
-    @Override
-    public MainViewModel getViewModel() {
-        return mMainViewModel;
-    }
-
-    @Override
-    public int getBindingVariable() {
-        return BR.viewModel;
-    }
-
-    @Override
-    public int getLayoutId() {
-        return R.layout.activity_main;
-    }
-
-    @Override
-    public void performDependencyInjection() {
-        getActivityComponent().inject(this);
-
-    }
-
-
 }

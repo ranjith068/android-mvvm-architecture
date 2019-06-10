@@ -16,17 +16,17 @@
 
 package com.mindorks.framework.mvvm.ui.login;
 
+import androidx.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
-
 import com.mindorks.framework.mvvm.BR;
 import com.mindorks.framework.mvvm.R;
+import com.mindorks.framework.mvvm.ViewModelProviderFactory;
 import com.mindorks.framework.mvvm.databinding.ActivityLoginBinding;
 import com.mindorks.framework.mvvm.ui.base.BaseActivity;
 import com.mindorks.framework.mvvm.ui.main.MainActivity;
-
 import javax.inject.Inject;
 
 /**
@@ -36,33 +36,28 @@ import javax.inject.Inject;
 public class LoginActivity extends BaseActivity<ActivityLoginBinding, LoginViewModel> implements LoginNavigator {
 
     @Inject
-    LoginViewModel mLoginViewModel;
-    ActivityLoginBinding mActivityLoginBinding;
+    ViewModelProviderFactory factory;
+    private LoginViewModel mLoginViewModel;
+    private ActivityLoginBinding mActivityLoginBinding;
 
-    public static Intent getStartIntent(Context context) {
-        Intent intent = new Intent(context, LoginActivity.class);
-        return intent;
+    public static Intent newIntent(Context context) {
+        return new Intent(context, LoginActivity.class);
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        mActivityLoginBinding = getViewDataBinding();
-        mLoginViewModel.setNavigator(this);
-
+    public int getBindingVariable() {
+        return BR.viewModel;
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mLoginViewModel.onDestroy();
+    public int getLayoutId() {
+        return R.layout.activity_login;
     }
 
     @Override
-    public void openMainActivity() {
-        Intent intent = MainActivity.getStartIntent(LoginActivity.this);
-        startActivity(intent);
-        finish();
+    public LoginViewModel getViewModel() {
+        mLoginViewModel = ViewModelProviders.of(this,factory).get(LoginViewModel.class);
+        return mLoginViewModel;
     }
 
     @Override
@@ -81,25 +76,18 @@ public class LoginActivity extends BaseActivity<ActivityLoginBinding, LoginViewM
             Toast.makeText(this, getString(R.string.invalid_email_password), Toast.LENGTH_SHORT).show();
         }
     }
+
     @Override
-    public LoginViewModel getViewModel() {
-        return mLoginViewModel;
+    public void openMainActivity() {
+        Intent intent = MainActivity.newIntent(LoginActivity.this);
+        startActivity(intent);
+        finish();
     }
 
     @Override
-    public int getBindingVariable() {
-        return BR.viewModel;
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mActivityLoginBinding = getViewDataBinding();
+        mLoginViewModel.setNavigator(this);
     }
-
-    @Override
-    public int getLayoutId() {
-        return R.layout.activity_login;
-    }
-
-    @Override
-    public void performDependencyInjection() {
-        getActivityComponent().inject(this);
-
-    }
-
 }
